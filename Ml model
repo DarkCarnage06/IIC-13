@@ -1,0 +1,63 @@
+# Importing necessary libraries
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Load dataset (replace 'crop_data.csv' with your dataset)
+# The dataset should include features like temperature, rainfall, soil type, etc.
+data = pd.read_csv('crop_data.csv')
+
+# Display the first few rows of the dataset
+print(data.head())
+
+# Feature selection
+# Replace 'Yield' with the actual name of the target variable in your dataset
+features = ['Temperature', 'Rainfall', 'Soil_Type', 'Fertilizer_Usage']  # Example features
+target = 'Yield'
+
+X = data[features]
+y = data[target]
+
+# Encode categorical features if any (e.g., Soil_Type)
+X = pd.get_dummies(X, columns=['Soil_Type'], drop_first=True)
+
+# Splitting the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialize the Random Forest Regressor
+model = RandomForestRegressor(n_estimators=100, random_state=42)
+
+# Train the model
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print(f"Mean Squared Error: {mse}")
+print(f"R^2 Score: {r2}")
+
+# Save the model for future use
+import joblib
+joblib.dump(model, 'crop_yield_model.pkl')
+
+# Example usage of the trained model
+new_data = pd.DataFrame({
+    'Temperature': [25],
+    'Rainfall': [200],
+    'Soil_Type': ['Loamy'],
+    'Fertilizer_Usage': [50]
+})
+
+# Process new_data (encode categorical features)
+new_data = pd.get_dummies(new_data, columns=['Soil_Type'], drop_first=True)
+new_data = new_data.reindex(columns=X.columns, fill_value=0)  # Ensure same feature columns
+
+# Predict yield
+predicted_yield = model.predict(new_data)
+print(f"Predicted Crop Yield: {predicted_yield[0]}")
